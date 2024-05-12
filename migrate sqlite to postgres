@@ -1,0 +1,31 @@
+"database is locked” error indicates a problem with your sqlite
+
+https://opsverse.io/2022/12/15/grafana-sqlite-and-database-is-locked/
+https://medium.com/@sbardar31/grafana-sqlite-migration-to-postgresql-c6c674eec03b
+https://blog.devgenius.io/how-to-setup-grafana-with-postgresql-database-using-docker-compose-a-step-by-step-guide-e5a9cce90ba3
+https://iceburn.medium.com/grafana-database-migration-from-sqlite3-to-mysql-301b6a01e249
+https://github.com/wbh1/grafana-sqlite-to-postgres
+
+The steps to do this are:
+        Bring up your own Postgres server
+        On that instance, create a grafana database and user
+        Update grafana.ini to point to the new Postgres DB
+        Run the following (awesome!) migration tool within an init container to move contents of the existing SQLite grafana.db to the Postgres DB: https://github.com/wbh1/grafana-sqlite-to-postgres
+        Remove the init container – Grafana should be up using Postgres as the config DB!
+
+
+999610369bf9:/usr/share/grafana# curl -kLs https://github.com/wbh1/grafana-sqlite-to-postgres/releases/download/v2.2.4/grafana-migrate_linux_amd64-v2.2.4 -o grafana-migrate
+999610369bf9:/usr/share/grafana# chmod +x ./grafana-migrate
+999610369bf9:/usr/share/grafana# ./grafana-migrate /var/lib/grafana/grafana-old.db 'postgres://grafana_user:grafana_pwd@monitoring_grafana_postgres:5432/grafana_db?sslmode=disable'
+INFO[2024-05-12T21:15:36+07:00] 📁 SQLlite file: /var/lib/grafana/grafana-old.db
+INFO[2024-05-12T21:15:36+07:00] 📁 Dump directory: /tmp
+INFO[2024-05-12T21:15:36+07:00] ✅ sqlite3 command exists
+INFO[2024-05-12T21:15:36+07:00] ✅ sqlite3 database dumped to /tmp/grafana.sql
+INFO[2024-05-12T21:15:37+07:00] ✅ CREATE statements removed from dump file
+INFO[2024-05-12T21:15:38+07:00] ✅ sqlite3 dump sanitized
+INFO[2024-05-12T21:15:38+07:00] ✅ migration_log statements removed
+INFO[2024-05-12T21:15:38+07:00] ✅ char keyword transformed
+INFO[2024-05-12T21:15:38+07:00] ✅ hex-encoded data values wrapped for insertion
+INFO[2024-05-12T21:15:48+07:00] ✅ Imported dump file to Postgres
+INFO[2024-05-12T21:15:48+07:00] 🎉 All done!
+999610369bf9:/usr/share/grafana#
